@@ -20,12 +20,11 @@ posts_list = []
 
 def get_reddit(subreddit, query, sort, period, limit):
 
-    
-    #posts = reddit.subreddit(word).hot(limit=15)
-    #posts = reddit.subreddit(word).top(time_filter="all")
-    #posts = reddit.subreddit(word).top(time_filter=period, limit=limit)
+
     posts = reddit.subreddit(subreddit).search(query=query, sort=sort, syntax='lucene', time_filter=period, limit=limit)
-        
+    print(f"Query: {query} - Quantidade Reddit: {0}")
+    print("=========================================================")
+    
     for post in posts:
         
         posts_dict = {}
@@ -42,6 +41,8 @@ def get_reddit(subreddit, query, sort, period, limit):
         posts_dict["Total Comments"] = post.num_comments       
         # URL of each post
         posts_dict["Post URL"] = post.url
+        # Time the subreddit was created, represented in Unix Time
+        posts_dict["Created at"] = post.created_utc
 
         print(f"id: {post.id} - Title: {post.title} - Total Comments: {post.num_comments}")
         print(f"URL: {post.url}")
@@ -64,7 +65,7 @@ def get_reddit(subreddit, query, sort, period, limit):
             print(f"Comment {index} id: {comment.id} -  {comment.body}")
         
         posts_list.append(posts_dict)
-        print("=========================================================")
+        #print("=========================================================")
     
     with open("data.json", "w") as outfile: 
         json.dump({"posts":posts_list}, outfile)
@@ -74,9 +75,10 @@ def get_reddit(subreddit, query, sort, period, limit):
 if __name__ == '__main__':
 
     subreddit = "porto"
-    query = "autocarro"
+    query = ["autocarro", "SCTP", "Anda", "Metrobus", "Metro"]
     sort = "relevance"
     period = "all"
     limit = 100
-        
-    get_reddit(subreddit, query, sort, period, limit)
+    
+    for q in query:
+        get_reddit(subreddit, q, sort, period, limit)
