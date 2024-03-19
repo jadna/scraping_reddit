@@ -18,13 +18,13 @@ reddit.read_only = True
 
 posts_list = []
 
-def get_reddit(subreddit, query, sort, time, limit):
+def get_reddit(subreddit, query, sort, period, limit):
 
     
     #posts = reddit.subreddit(word).hot(limit=15)
     #posts = reddit.subreddit(word).top(time_filter="all")
-    #posts = reddit.subreddit(word).top(time_filter=time, limit=limit)
-    posts = reddit.subreddit(subreddit).search(query, sort, time)
+    #posts = reddit.subreddit(word).top(time_filter=period, limit=limit)
+    posts = reddit.subreddit(subreddit).search(query=query, sort=sort, syntax='lucene', time_filter=period, limit=limit)
         
     for post in posts:
         
@@ -76,7 +76,7 @@ if __name__ == '__main__':
     subreddit = "porto"
     query = "autocarro"
     sort = "relevance"
-    time = "month"
-    limit = 10
+    period = "all"
+    limit = 100
         
-    get_reddit(subreddit, query, sort, time, limit)
+    get_reddit(subreddit, query, sort, period, limit)
