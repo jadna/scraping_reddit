@@ -4,6 +4,8 @@ import pandas as pd
 import json
 import praw
 from praw.models import MoreComments
+from datetime import datetime
+
 
 load_dotenv()
 
@@ -18,17 +20,23 @@ reddit.read_only = True
 
 posts_list = []
 
-def get_reddit(subreddit, query, sort, period, limit):
+def get_reddit(subreddit, query, sort, syntax, period, limit):
 
 
-    posts = reddit.subreddit(subreddit).search(query=query, sort=sort, syntax='lucene', time_filter=period, limit=limit)
-    print(f"Query: {query} - Quantidade Reddit: {0}")
+    posts = reddit.subreddit(subreddit).search(query=query, sort=sort, syntax=syntax, time_filter=period, limit=limit)
+    print(f"SubReddit: {subreddit} - Query: {query}")
     print("=========================================================")
     
-    for post in posts:
+    for index,post in enumerate(posts):
         
         posts_dict = {}
 
+        # Subreddit
+        posts_dict["Subreddit"] = subreddit
+        # Query research
+        posts_dict["Query"] = query
+        # Number of post
+        posts_dict["Post number"] = index+1
         # Title of each post
         posts_dict["Title"] = post.title
         # Text inside a post
@@ -44,9 +52,10 @@ def get_reddit(subreddit, query, sort, period, limit):
         # Time the subreddit was created, represented in Unix Time
         posts_dict["Created at"] = post.created_utc
 
-        print(f"id: {post.id} - Title: {post.title} - Total Comments: {post.num_comments}")
-        print(f"URL: {post.url}")
-        print(f"{post.selftext}")
+        # print(f"id: {post.id} - Title: {post.title} - Total Comments: {post.num_comments}")
+        # print(f"URL: {post.url}")
+        # print(f"{post.selftext}")
+        print(f"Post {index+1}")
 
         # Get comments
         posts_dict["Comments"] = []
@@ -55,30 +64,42 @@ def get_reddit(subreddit, query, sort, period, limit):
 
         for index, comment in enumerate(submission.comments):
             posts_dict["Comments"].append({
-                "Comment ID":comment.id,
-                "Comment":comment.body
+                "Comment number": index+1,
+                "Comment ID": comment.id,
+                "Comment": comment.body if "body" in submission.comments else "" 
             })
 
             if type(comment) == MoreComments:
                 continue
 
-            print(f"Comment {index} id: {comment.id} -  {comment.body}")
+            # print(f"Comment {index} id: {comment.id} -  {comment.body}")
+            print(f"    Comment {index+1}")
         
         posts_list.append(posts_dict)
         #print("=========================================================")
     
-    with open("data.json", "w") as outfile: 
-        json.dump({"posts":posts_list}, outfile)
+    # with open("data.json", "a") as outfile: 
+    #     json.dump({"posts":posts_list}, outfile)
 
+    return posts_list
 
 
 if __name__ == '__main__':
 
-    subreddit = "porto"
-    query = ["autocarro", "SCTP", "Anda", "Metrobus", "Metro"]
+    day = datetime.now()
+    name_data = "scraping_reddit/data"+str(day).replace(":","_").replace(".","_").replace(" ","_").replace("-","_")+".json"
+
+    subreddit = "porto" # "fcporto", "portugal"
+    query = ["Autocarro", "SCTP", "Anda", "Metrobus", "Metro", "Onibus", "Trotinete"]
     sort = "relevance"
+    syntax = "cloudsearch"
     period = "all"
     limit = 100
     
+    total = []
+
     for q in query:
-        get_reddit(subreddit, q, sort, period, limit)
+        total += get_reddit(subreddit, q, sort, syntax, period, limit)
+
+    with open(name_data, "w") as outfile: 
+        json.dump({"posts":total}, outfile)
